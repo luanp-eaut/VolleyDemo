@@ -21,10 +21,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         String xmlUrl = "https://www.w3schools.com/xml/note.xml";
         String jsonUrl = "https://filesamples.com/samples/code/json/sample2.json";
+        String jsonArrayUrl = "https://jsonplaceholder.typicode.com/posts";
         String imageUrl = "https://cdn.pixabay.com/photo/2022/12/02/16/52/the-path-7631282_1280.jpg";
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -64,20 +68,14 @@ public class MainActivity extends AppCompatActivity {
             requestQueue.add(stringRequest);
         });
 
-        jsonButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                JsonObjectRequest jsonObjectRequest = getJsonObjectRequest(jsonUrl);
-                requestQueue.add(jsonObjectRequest);
-            }
+        jsonButton.setOnClickListener(view -> {
+            JsonArrayRequest jsonObjectRequest = getJsonArrayRequest(jsonArrayUrl);
+            requestQueue.add(jsonObjectRequest);
         });
 
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ImageRequest imageRequest = getImageRequest(imageUrl);
-                requestQueue.add(imageRequest);
-            }
+        imageButton.setOnClickListener(view -> {
+            ImageRequest imageRequest = getImageRequest(imageUrl);
+            requestQueue.add(imageRequest);
         });
     }
 
@@ -87,8 +85,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private JsonObjectRequest getJsonObjectRequest(String url) {
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> textView.setText(response.toString()), error -> textView.setText(error.toString()));
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> textView.setText(response.toString()), error -> {
+            textView.setText(error.toString());
+        });
         return jsonObjectRequest;
+    }
+
+    private JsonArrayRequest getJsonArrayRequest(String url) {
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
+            Log.i("HALLO", response.length() + "");
+            for (int i = 0; i < response.length(); i++) {
+                try {
+                    JSONObject responseObj = response.getJSONObject(i);
+                    String userId = responseObj.getString("userId");
+                    String title = responseObj.getString("title");
+                    String body = responseObj.getString("body");
+                    Log.i("HALLO", "UserId: " + userId + ", title: " + title);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, error -> {
+            textView.setText(error.toString());
+        });
+        return jsonArrayRequest;
     }
 
     private ImageRequest getImageRequest(String url) {
